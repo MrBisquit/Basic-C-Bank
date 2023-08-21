@@ -10,13 +10,15 @@ public:
 		int paid;
 		int due;
 		int current_month;
+
+		bool active = false;
 	};
 	class User {
 	public:
 		int id;
 		int pin;
 		int balance;
-		Types::Loan loans;
+		Types::Loan loan;
 	};
 };
 

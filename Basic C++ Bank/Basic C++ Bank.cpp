@@ -1,12 +1,17 @@
+// --- Begin imports --- //
 #include <iostream>
 #include <stdlib.h>
 #include "Types.h"
+#include <iomanip>
+#include <locale>
+// --- End imports --- //
 
-using namespace std;
+using namespace std; // I know I shouldn't be relying on the std namespace but it's useful.
 
+// --- Begin variables --- //
 bool isRunning = true;
 int numberOfUsers = 0;
-Types::User users[500];
+Types::User users[500]; // This can take up a lot of space but as of now I have no easy way of starting it over.
 
 int bank_ir;
 int loan_ir;
@@ -14,13 +19,21 @@ int loan_dp;
 
 int bank_profit;
 int total_bank = 100000000;
+// --- End variables --- //
 
+// --- Begin forward declarations --- //
 int showHomeCmds();
 int createAccount();
 int loginUser();
 int loginUser();
 int showUserCmds();
+int showBankInfo();
+int showUserInfo(Types::User user);
+int manageUserLoan(Types::User user);
+int showUserLoanCmds(Types::User user);
+int newLoan(Types::User user);
 int cleanUp(bool quit);
+// --- End forward declarations --- //
 
 int main()
 {
@@ -31,13 +44,14 @@ int main()
     cout << "Loaning interest rate (%): ";
     cin >> loan_ir;
     cout << "Loaning down payment (%): ";
-    cin >> loan_ir;
+    cin >> loan_dp;
     numberOfUsers = 0;
     cout << "Ready...";
     do {
         system("cls");
-        cout << "Welcome to the banking system." << endl;
-        cout << "Please select an option from this list." << endl;
+        /*cout << "Welcome to the banking system." << endl;
+        cout << "Please select an option from this list." << endl;*/
+        showBankInfo();
         int selected = showHomeCmds();
         system("cls");
         if (selected == 3) {
@@ -56,7 +70,7 @@ int main()
     } while (isRunning);
 
     system("cls");
-    cout << "Beginning cleanup..." << endl;
+    cout << "Beginning clean up..." << endl;
     cleanUp(true);
 
     return 0;
@@ -90,8 +104,9 @@ int showHomeCmds() {
 
 int createAccount() {
     system("cls");
+    showBankInfo();
     Types::User user;
-    user.balance = 100000;
+    user.balance = 5000;
     user.id = numberOfUsers;
     numberOfUsers += 1;
     cout << "Your user ID is " << user.id << endl;
@@ -102,6 +117,7 @@ int createAccount() {
     users[user.id] = user;
 
     system("cls");
+    showBankInfo();
     cout << "User " << user.id << " successfully created." << endl;
 
     return 0;
@@ -109,12 +125,13 @@ int createAccount() {
 
 int loginUser() {
     system("cls");
+    showBankInfo();
     Types::User user;
     int id = 0;
     cout << "Enter your ID: ";
     cin >> id;
     user = users[id];
-    cout << endl << "Enter your pin: ";
+    cout << "Enter your pin: ";
     int pin = 0;
     cin >> pin;
     if (user.pin != pin) {
@@ -123,6 +140,7 @@ int loginUser() {
         return 0;
     }
     system("cls");
+    showUserInfo(user);
 
     bool isLoggedIn = true;
     do {
@@ -141,11 +159,105 @@ int loginUser() {
         }
         else if (selected == 1) {
             system("cls");
+            showUserInfo(user);
             cout << "Your current balance is " << user.balance << endl;
+        }
+        else if (selected == 3) {
+            manageUserLoan(user);
         }
     } while (isLoggedIn);
 
     return 0;
+}
+
+int manageUserLoan(Types::User user) {
+    system("cls");
+    showUserInfo(user);
+    bool active = true;
+
+    do {
+        system("cls");
+        showUserInfo(user);
+        int selected = showUserLoanCmds(user);
+        if (selected == 4) {
+            system("cls");
+            showUserInfo(user);
+            active = false;
+        }
+        else if (selected == 1) {
+            if (user.loan.active) {
+                cout << "The user already has a loan. Would you like to override it? (y/any other key): ";
+                char option;
+                cin >> option;
+                if (option == 'y') {
+                    newLoan(user);
+                }
+            }
+            else {
+                newLoan(user);
+            }
+        }
+    } while (active);
+
+    return 0;
+}
+
+int newLoan(Types::User user) {
+    system("cls");
+    showUserInfo(user);
+    cout << "Amount of loan: ";
+    int amount;
+    cin >> amount;
+    cout << "How many months: ";
+    int months;
+    cin >> months;
+    system("cls");
+    showUserInfo(user);
+    cout << "Checking info...";
+    int dp = amount / loan_dp;
+    if (user.balance >= user.balance - dp);
+    else {
+        cout << "You do not have enough to fill the down payment of " << dp << "!" << endl;
+        cout << "Press any key to continue...";
+        cin;
+        return 0;
+    }
+    cout << "Enter your pin to complete transaction of " << dp << endl << "Pin: ";
+    int pin;
+    cin >> pin;
+    if (user.pin != pin) {
+        cout << "Invalid pin.";
+        cout << "Press any key to continue...";
+        cin;
+        return 0;
+    }
+    return 0;
+}
+
+int showUserLoanCmds(Types::User user) {
+    bool isValid = false;
+    int selected = 0;
+
+    do {
+        cout << "1. Create a new loan" << endl;
+        cout << "2. Add (monthly) payment" << endl;
+        cout << "3. Remove loan" << endl;
+        cout << "4. Quit" << endl;
+
+        cin >> selected;
+
+        if (selected == 1 ||
+            selected == 2 ||
+            selected == 3 ||
+            selected == 4) {
+            isValid = true;
+        }
+        else {
+            cout << "Invalid option." << endl;
+        }
+    } while (!isValid);
+
+    return selected;
 }
 
 int showUserCmds() {
@@ -177,15 +289,37 @@ int showUserCmds() {
 }
 
 int showBankInfo() {
+    cout << "--------------- Bank info ---------------" << endl;
+    cout << "Bank profit: " << bank_profit << endl;
+    cout << "Bank total money: " << total_bank << endl;
+    cout << "-----------------------------------------" << endl;
 
+    return 0;
+}
+
+int showUserInfo(Types::User user) {
+    cout << "--------------- User info ---------------" << endl;
+    cout << "Balance: " << user.balance << endl;
+    if (user.loan.active) {
+        cout << "Loan:" << endl;
+        cout << "    Amount due: " << user.loan.due << endl;
+        cout << "    Paid off: " << user.loan.paid << endl;
+        cout << "    Total loan amount: " << user.loan.amount << endl;
+    }
+    else {
+        cout << "Loan: No loan active." << endl;
+    }
+    cout << "-----------------------------------------" << endl;
+
+    return 0;
 }
 
 int cleanUp(bool quit) {
     if (quit) {
-        cout << "Cleanup finished, quitting...";
+        cout << "Clean up finished, quitting...";
     }
     else {
-        cout << "Cleanup finished...";
+        cout << "Clean up finished...";
     }
     return 0;
 }
