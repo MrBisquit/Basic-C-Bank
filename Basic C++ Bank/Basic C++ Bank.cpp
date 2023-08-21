@@ -176,6 +176,10 @@ int showUserCmds() {
     return selected;
 }
 
+int showBankInfo() {
+
+}
+
 int cleanUp(bool quit) {
     if (quit) {
         cout << "Cleanup finished, quitting...";

@@ -3,13 +3,6 @@
 
 static class Types {
 public:
-	class User {
-	public:
-		int id;
-		int pin;
-		int balance;
-		Types::Loan loans;
-	};
 	class Loan {
 	public:
 		int amount;
@@ -17,6 +10,13 @@ public:
 		int paid;
 		int due;
 		int current_month;
+	};
+	class User {
+	public:
+		int id;
+		int pin;
+		int balance;
+		Types::Loan loans;
 	};
 };
 
