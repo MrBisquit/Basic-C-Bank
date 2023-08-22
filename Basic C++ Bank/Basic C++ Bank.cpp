@@ -4,6 +4,7 @@
 #include "Types.h"
 #include <iomanip>
 #include <locale>
+#include "Storing.h"
 // --- End imports --- //
 
 using namespace std; // I know I shouldn't be relying on the std namespace but it's useful.
@@ -37,6 +38,43 @@ int cleanUp(bool quit);
 
 int main()
 {
+    system("cls");
+    cout << "Loading users..." << endl;
+    for (size_t i = 0; i < 500; i++)
+    {
+        try {
+            users[i] = LoadUser(i);
+        }
+        catch(exception ex) {
+            //cout << "Failed to load user " << i << endl;
+        }
+    }
+    cout << "Loaded users!" << endl;
+    cout << "Sorting..." << endl;
+
+    Types::User Users_Sorted[500];
+    for (size_t i = 0; i < 500; i++)
+    {
+        Users_Sorted[users[i].id] = users[i];
+    }
+    for (size_t i = 0; i < 500; i++)
+    {
+        users[i] = Users_Sorted[i];
+    }
+    cout << "Sorted!" << endl;
+    cout << "Saving and reloading..." << endl;
+    cout << "Loading users..." << endl;
+    for (size_t i = 0; i < 500; i++)
+    {
+        try {
+            users[i] = LoadUser(i);
+        }
+        catch (exception ex) {
+            //cout << "Failed to load user " << i << endl;
+        }
+    }
+    cout << "Loaded users!" << endl;
+    SaveUsers(users);
     system("cls");
     cout << "Please fill in the variables." << endl;
     cout << "Bank account interest rate (%): ";
@@ -119,6 +157,7 @@ int createAccount() {
     system("cls");
     showBankInfo();
     cout << "User " << user.id << " successfully created." << endl;
+    SaveUsers(users);
 
     return 0;
 }
@@ -213,24 +252,44 @@ int newLoan(Types::User user) {
     cin >> months;
     system("cls");
     showUserInfo(user);
-    cout << "Checking info...";
+    cout << "Checking info..." << endl;
     int dp = amount / loan_dp;
     if (user.balance >= user.balance - dp);
     else {
         cout << "You do not have enough to fill the down payment of " << dp << "!" << endl;
         cout << "Press any key to continue...";
-        cin;
+        cin >> amount;
         return 0;
     }
     cout << "Enter your pin to complete transaction of " << dp << endl << "Pin: ";
     int pin;
     cin >> pin;
     if (user.pin != pin) {
+        system("cls");
+        showUserInfo(user);
         cout << "Invalid pin.";
         cout << "Press any key to continue...";
         cin;
         return 0;
     }
+    system("cls");
+    showUserInfo(user);
+    cout << "Creating loan..." << endl;
+    user.balance -= dp;
+    user.loan.active = true;
+    user.loan.amount = amount;
+    user.loan.due = (amount - dp) + (amount / loan_ir);
+    int profit = user.loan.due - amount;
+    user.loan.months = months;
+    user.loan.paid = dp;
+    users[user.id] = user;
+    total_bank -= amount - dp;
+    system("cls");
+    showUserInfo(user);
+    cout << "Added loan." << endl;
+    cout << "You now owe the bank " << user.loan.due / months << " every month." << endl;
+    cout << "You have already paid the bank " << dp << " as a down payment" << endl;
+    cin >> amount;
     return 0;
 }
 
