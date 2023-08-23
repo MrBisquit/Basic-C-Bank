@@ -33,6 +33,8 @@ int showUserInfo(Types::User user);
 int manageUserLoan(Types::User user);
 int showUserLoanCmds(Types::User user);
 int newLoan(Types::User user);
+int beginSave();
+int LoadInfo();
 int cleanUp(bool quit);
 // --- End forward declarations --- //
 
@@ -63,6 +65,7 @@ int main()
     }
     cout << "Sorted!" << endl;
     cout << "Saving and reloading..." << endl;
+    SaveUsers(users);
     cout << "Loading users..." << endl;
     for (size_t i = 0; i < 500; i++)
     {
@@ -76,14 +79,23 @@ int main()
     cout << "Loaded users!" << endl;
     SaveUsers(users);
     system("cls");
-    cout << "Please fill in the variables." << endl;
-    cout << "Bank account interest rate (%): ";
-    cin >> bank_ir;
-    cout << "Loaning interest rate (%): ";
-    cin >> loan_ir;
-    cout << "Loaning down payment (%): ";
-    cin >> loan_dp;
-    numberOfUsers = 0;
+    cout << "Do you want to attempt to load from storage? If nothing exists all the values will be 0. (y/any other key)" << endl;
+    char option;
+    cin >> option;
+    if (option == 'y') {
+        LoadInfo();
+    }
+    else {
+        cout << "Please fill in the variables." << endl;
+        cout << "Bank account interest rate (%): ";
+        cin >> bank_ir;
+        cout << "Loaning interest rate (%): ";
+        cin >> loan_ir;
+        cout << "Loaning down payment (%): ";
+        cin >> loan_dp;
+    }
+    SaveInfo();
+    //numberOfUsers = 0;
     cout << "Ready...";
     do {
         system("cls");
@@ -107,6 +119,7 @@ int main()
         }
     } while (isRunning);
 
+    beginSave();
     system("cls");
     cout << "Beginning clean up..." << endl;
     cleanUp(true);
@@ -145,7 +158,7 @@ int createAccount() {
     showBankInfo();
     Types::User user;
     user.balance = 5000;
-    user.id = numberOfUsers;
+    user.id = numberOfUsers + 1;
     numberOfUsers += 1;
     cout << "Your user ID is " << user.id << endl;
     cout << "Enter your pin: ";
@@ -157,7 +170,8 @@ int createAccount() {
     system("cls");
     showBankInfo();
     cout << "User " << user.id << " successfully created." << endl;
-    SaveUsers(users);
+    //SaveUsers(users);
+    beginSave();
 
     return 0;
 }
@@ -290,6 +304,7 @@ int newLoan(Types::User user) {
     cout << "You now owe the bank " << user.loan.due / months << " every month." << endl;
     cout << "You have already paid the bank " << dp << " as a down payment" << endl;
     cin >> amount;
+    beginSave();
     return 0;
 }
 
@@ -369,6 +384,48 @@ int showUserInfo(Types::User user) {
         cout << "Loan: No loan active." << endl;
     }
     cout << "-----------------------------------------" << endl;
+
+    return 0;
+}
+
+int beginSave() {
+    cout << "Saving info..." << endl;
+    SaveNumberOfUsers(numberOfUsers);
+    SaveBankIR(bank_ir);
+    SaveLoanIR(loan_ir);
+    SaveLoanDP(loan_dp);
+    SaveBankProfit(bank_profit);
+    SaveTotalBank(total_bank);
+
+    SaveInfo();
+    cout << "Sorting..." << endl;
+
+    Types::User* Users_Sorted = new Types::User[500];
+    for (size_t i = 0; i < 500; i++)
+    {
+        Users_Sorted[users[i].id] = users[i];
+    }
+    for (size_t i = 0; i < 500; i++)
+    {
+        users[i] = Users_Sorted[i];
+    }
+    delete[] Users_Sorted;
+    cout << "Sorted!" << endl;
+    cout << "Saving and reloading..." << endl;
+    SaveUsers(users);
+
+    return 0;
+}
+
+int LoadInfo() {
+    LoadAllInfo();
+
+    numberOfUsers = LoadNumberOfUsers();
+    bank_ir = LoadBankIR();
+    loan_ir = LoadLoanIR();
+    loan_dp = LoadLoanDP();
+    bank_profit = LoadBankProfit();
+    total_bank = LoadTotalBank();
 
     return 0;
 }
