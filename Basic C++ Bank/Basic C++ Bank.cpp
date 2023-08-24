@@ -47,6 +47,7 @@ int cleanUp(bool quit);
 
 int main()
 {
+    /* Testing */
     number_alerts++;
     Types::Alert alert;
     alert.criticality = Types::AlertCriticality::Critical;
@@ -57,6 +58,7 @@ int main()
     user.id = 1;
     alert.user = user;
     alerts[0] = alert;
+    /* Testing */
 
     LoadInfo();
     SaveUsers(users);
