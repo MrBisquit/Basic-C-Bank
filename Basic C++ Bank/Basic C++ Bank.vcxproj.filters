@@ -24,18 +24,12 @@
     <ClCompile Include="Storing.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Calculations.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Storing.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Calculations.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

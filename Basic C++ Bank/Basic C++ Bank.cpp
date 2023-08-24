@@ -5,9 +5,6 @@
 #include <iomanip>
 #include <locale>
 #include "Storing.h"
-extern "C" {
-    #include "calculations.h"
-}
 // --- End imports --- //
 
 using namespace std; // I know I shouldn't be relying on the std namespace but it's useful.
@@ -24,6 +21,9 @@ int loan_dp;
 
 int bank_profit;
 int total_bank = 100000000;
+
+int number_alerts = 0;
+Types::Alert* alerts = new Types::Alert[500];
 // --- End variables --- //
 
 // --- Begin forward declarations --- //
@@ -32,7 +32,8 @@ int createAccount();
 int loginUser();
 int loginUser();
 int showUserCmds();
-int showBankInfo();
+int showSmallAlertsInfo(bool dl, bool bldl, bool dll);
+int showBankInfo(bool dl);
 int showUserInfo(Types::User user);
 int manageUserTransfer(Types::User user);
 int manageUserLoan(Types::User user);
@@ -70,9 +71,11 @@ int main()
     cout << "Ready...";
     do {
         system("cls");
-        /*cout << "Welcome to the banking system." << endl;
-        cout << "Please select an option from this list." << endl;*/
-        showBankInfo();
+        cout << "---------------- Welcome ----------------" << endl;
+        cout << "Welcome to the banking system." << endl;
+        cout << "Please select an option from this list." << endl;
+        showSmallAlertsInfo(true, true, false);
+        showBankInfo(true);
         int selected = showHomeCmds();
         system("cls");
         if (selected == 3) {
@@ -136,7 +139,8 @@ int showHomeCmds() {
 
 int createAccount() {
     system("cls");
-    showBankInfo();
+    showSmallAlertsInfo(false, true, false);
+    showBankInfo(true);
     Types::User user;
     user.exists = true;
     user.balance = 5000;
@@ -151,7 +155,8 @@ int createAccount() {
     users[user.id] = user;
 
     system("cls");
-    showBankInfo();
+    showSmallAlertsInfo(false, true, false);
+    showBankInfo(true);
     cout << "User " << user.id << " successfully created." << endl;
     //SaveUsers(users);
     beginSave();
@@ -161,14 +166,15 @@ int createAccount() {
 
 int loginUser() {
     system("cls");
-    showBankInfo();
+    showSmallAlertsInfo(false, true, false);
+    showBankInfo(true);
     Types::User user;
     int id = 0;
     cout << "Enter your ID: ";
     cin >> id;
     if (users[id].exists == false) {
         system("cls");
-        showBankInfo();
+        showBankInfo(false);
         cout << "This user does not exist." << endl;
         return 0;
     }
@@ -179,7 +185,7 @@ int loginUser() {
     if (user.pin != pin) {
         cout << endl << "Incorrect pin.";
         isRunning = false;
-        return 0;
+        return 1;
     }
     system("cls");
     showUserInfo(user);
@@ -365,8 +371,7 @@ int newLoan(Types::User user) {
     user.balance -= dp;
     user.loan.active = true;
     user.loan.amount = amount;
-    //user.loan.due = (amount - dp) + (amount / loan_ir);
-    user.loan.due = calculateLoanDue(amount, loan_dp, loan_ir);
+    user.loan.due = (amount - dp) + (amount / loan_ir);
     int profit = user.loan.due - amount;
     user.loan.months = months;
     user.loan.paid = dp;
@@ -436,8 +441,66 @@ int showUserCmds() {
     return selected;
 }
 
-int showBankInfo() {
-    cout << "--------------- Bank info ---------------" << endl;
+int showSmallAlertsInfo(bool dl, bool bldl, bool dll) {
+    if (dl) {
+        cout << "================ Alerts =================" << endl;
+    }
+    else {
+        cout << "---------------- Alerts -----------------" << endl;
+    }
+
+    cout << "Alerts: " << number_alerts << endl;
+
+    int DuePayment = 0;
+    int Low = 0;
+    int Medium = 0;
+    int High = 0;
+    int Critical = 0;
+
+    for (size_t i = 0; i < number_alerts; i++)
+    {
+        if (alerts[i].exists) {
+            if (alerts[i].criticality == Types::Critical) {
+                Critical++;
+            }
+            else if (alerts[i].criticality == Types::High) {
+                High++;
+            }
+            else if (alerts[i].criticality == Types::Medium) {
+                Medium++;
+            }
+            else if (alerts[i].criticality == Types::Low) {
+                Low++;
+            }
+        }
+    }
+
+    cout << "   |--- Critical: " << Critical << endl;
+    cout << "   |------- High: " << High << endl;
+    cout << "   |----- Medium: " << Medium << endl;
+    cout << "   |-------- Low: " << Low << endl;
+
+    if (!dll) {
+        return 0;
+    }
+
+    if (bldl) {
+        cout << "=========================================" << endl;
+    }
+    else {
+        cout << "-----------------------------------------" << endl;
+    }
+
+    return 0;
+}
+
+int showBankInfo(bool dl) {
+    if (dl) {
+        cout << "=============== Bank info ===============" << endl;
+    }
+    else {
+        cout << "--------------- Bank info ---------------" << endl;
+    }
     cout << "Bank profit: " << bank_profit << endl;
     cout << "Bank total money: " << total_bank << endl;
     cout << "-----------------------------------------" << endl;

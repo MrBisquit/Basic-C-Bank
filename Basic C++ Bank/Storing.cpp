@@ -91,16 +91,16 @@ void SaveUser(Types::User user) {
 
 		myfile.close();
 	}
-	else cout << "Unable to open file" << endl;
+	else; //cout << "Unable to open file" << endl;
 }
 
 void SaveUsers(Types::User users[]) {
 	// sizeof(users)
 	for (size_t i = 0; i < users_capacity; i++)
 	{
-		cout << "Saving " << i << endl;
+		//cout << "Saving " << i << endl;
 		SaveUser(users[i]);
-		cout << "Saved " << i << endl;
+		//cout << "Saved " << i << endl;
 	}
 }
 
@@ -117,7 +117,7 @@ void SaveInfo() {
 		myfile << total_bank_S << endl;
 		myfile.close();
 	}
-	else cout << "Unable to open file" << endl;
+	else; //cout << "Unable to open file" << endl;
 }
 
 Types::User LoadUser(int id) {
@@ -130,7 +130,7 @@ Types::User LoadUser(int id) {
 		string line;
 		while (getline(myfile, line)) {
 			cl++;
-			
+
 			if (cl == 1) {
 				user.balance = stoi(line);
 			}
@@ -173,7 +173,7 @@ Types::User LoadUser(int id) {
 			}
 		}
 	}
-	else cout << "Unable to open file" << endl;
+	else; //cout << "Unable to open file" << endl;
 	return user;
 }
 

@@ -21,6 +21,25 @@ public:
 		Types::Loan loan;
 		bool exists = false;
 	};
+	
+	enum AlertCriticality {
+
+		Low,
+		Medium,
+		High,
+		Critical
+	};
+	enum AlertType
+	{
+		PaymentDue
+	};
+	class Alert {
+	public:
+		Types::AlertType type;
+		Types::AlertCriticality criticality;
+		Types::User user;
+		bool exists = false;
+	};
 };
 
 #endif
