@@ -1,3 +1,5 @@
+#include <string>
+
 #ifndef Types_H
 #define Types_H
 
@@ -20,6 +22,7 @@ public:
 		int balance = 0;
 		Types::Loan loan;
 		bool exists = false;
+		//string username;
 	};
 	
 	enum AlertCriticality {
@@ -35,6 +38,7 @@ public:
 	};
 	class Alert {
 	public:
+		int id;
 		Types::AlertType type;
 		Types::AlertCriticality criticality;
 		Types::User user;

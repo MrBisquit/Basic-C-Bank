@@ -33,6 +33,7 @@ int loginUser();
 int loginUser();
 int showUserCmds();
 int showSmallAlertsInfo(bool dl, bool bldl, bool dll);
+int showAlerts();
 int showBankInfo(bool dl);
 int showUserInfo(Types::User user);
 int manageUserTransfer(Types::User user);
@@ -46,6 +47,17 @@ int cleanUp(bool quit);
 
 int main()
 {
+    number_alerts++;
+    Types::Alert alert;
+    alert.criticality = Types::AlertCriticality::Critical;
+    alert.exists = true;
+    alert.id = 1;
+    alert.type = Types::AlertType::PaymentDue;
+    Types::User user;
+    user.id = 1;
+    alert.user = user;
+    alerts[0] = alert;
+
     LoadInfo();
     SaveUsers(users);
     system("cls");
@@ -78,7 +90,7 @@ int main()
         showBankInfo(true);
         int selected = showHomeCmds();
         system("cls");
-        if (selected == 3) {
+        if (selected == 4) {
             isRunning = false;
             beginSave();
         }
@@ -88,16 +100,19 @@ int main()
         else if (selected == 2) {
             createAccount();
         }
-        else if (selected == 4) {
+        else if (selected == 5) {
             cleanUp(false);
             numberOfUsers = 0;
             main();
         }
-        else if (selected == 5) {
+        else if (selected == 6) {
             cleanUp(false);
             SaveInfo();
             SaveUsers(users);
             LoadInfo();
+        }
+        else if (selected == 3) {
+            showAlerts();
         }
     } while (isRunning);
 
@@ -116,9 +131,10 @@ int showHomeCmds() {
     do {
         cout << "1. Login as a user" << endl;
         cout << "2. Create a user" << endl;
-        cout << "3. Quit" << endl;
-        cout << "4. Reset variables" << endl;
-        cout << "5. Save & Clean" << endl;
+        cout << "3. Alerts" << endl;
+        cout << "4. Quit" << endl;
+        cout << "5. Reset variables" << endl;
+        cout << "6. Save & Clean" << endl;
 
         cin >> selected;
 
@@ -126,7 +142,8 @@ int showHomeCmds() {
             selected == 2 ||
             selected == 3 ||
             selected == 4 ||
-            selected == 5) {
+            selected == 5 ||
+            selected == 6) {
             isValid = true;
         }
         else {
@@ -490,6 +507,48 @@ int showSmallAlertsInfo(bool dl, bool bldl, bool dll) {
     else {
         cout << "-----------------------------------------" << endl;
     }
+
+    return 0;
+}
+
+int showAlerts() {
+    system("cls");
+    cout << "|-----------------------------------------------------|" << endl;
+    cout << "|  ID  |     Type     |    Criticality    |  User ID  |" << endl;
+    cout << "|------|--------------|-------------------|-----------|" << endl;
+    for (size_t i = 0; i < number_alerts; i++)
+    {
+        string id = to_string(alerts[i].id);
+        cout << "| " << id;
+        for (size_t i = 0; i < 4 - id.length(); i++)
+        {
+            cout << " ";
+        }
+        cout << " | ";
+        if (alerts[i].type == Types::AlertType::PaymentDue) {
+            cout << "Payment Due ";
+        }
+        cout << " | ";
+        if (alerts[i].criticality == Types::AlertCriticality::Critical) {
+            cout << "Critical         ";
+        }
+        cout << " | ";
+
+        string uid = to_string(alerts[i].user.id);
+        cout << uid;
+        for (size_t i = 0; i < 9 - uid.length(); i++)
+        {
+            cout << " ";
+        }
+
+        cout << " |" << endl;
+        //cout << "| " << alerts[i].id << "" << endl;
+        if (i != number_alerts - 1) {
+            cout << "|------|--------------|-------------------|-----------|" << endl;
+        }
+    }
+    cout << "|-----------------------------------------------------|" << endl;
+    cin >> total_bank;
 
     return 0;
 }
