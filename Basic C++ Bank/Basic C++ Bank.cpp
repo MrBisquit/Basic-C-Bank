@@ -5,6 +5,9 @@
 #include <iomanip>
 #include <locale>
 #include "Storing.h"
+extern "C" {
+#include "calculations.h"
+}
 // --- End imports --- //
 
 using namespace std; // I know I shouldn't be relying on the std namespace but it's useful.
@@ -12,7 +15,8 @@ using namespace std; // I know I shouldn't be relying on the std namespace but i
 // --- Begin variables --- //
 bool isRunning = true;
 int numberOfUsers = 0;
-Types::User users[500]; // This can take up a lot of space but as of now I have no easy way of starting it over.
+const int users_capacity = 500;
+Types::User users[users_capacity]; // This can take up a lot of space but as of now I have no easy way of starting it over.
 
 int bank_ir;
 int loan_ir;
@@ -30,6 +34,7 @@ int loginUser();
 int showUserCmds();
 int showBankInfo();
 int showUserInfo(Types::User user);
+int manageUserTransfer(Types::User user);
 int manageUserLoan(Types::User user);
 int showUserLoanCmds(Types::User user);
 int newLoan(Types::User user);
@@ -40,43 +45,7 @@ int cleanUp(bool quit);
 
 int main()
 {
-    system("cls");
-    cout << "Loading users..." << endl;
-    for (size_t i = 0; i < 500; i++)
-    {
-        try {
-            users[i] = LoadUser(i);
-        }
-        catch(exception ex) {
-            //cout << "Failed to load user " << i << endl;
-        }
-    }
-    cout << "Loaded users!" << endl;
-    cout << "Sorting..." << endl;
-
-    Types::User Users_Sorted[500];
-    for (size_t i = 0; i < 500; i++)
-    {
-        Users_Sorted[users[i].id] = users[i];
-    }
-    for (size_t i = 0; i < 500; i++)
-    {
-        users[i] = Users_Sorted[i];
-    }
-    cout << "Sorted!" << endl;
-    cout << "Saving and reloading..." << endl;
-    SaveUsers(users);
-    cout << "Loading users..." << endl;
-    for (size_t i = 0; i < 500; i++)
-    {
-        try {
-            users[i] = LoadUser(i);
-        }
-        catch (exception ex) {
-            //cout << "Failed to load user " << i << endl;
-        }
-    }
-    cout << "Loaded users!" << endl;
+    LoadInfo();
     SaveUsers(users);
     system("cls");
     cout << "Do you want to attempt to load from storage? If nothing exists all the values will be 0. (y/any other key)" << endl;
@@ -87,6 +56,8 @@ int main()
     }
     else {
         cout << "Please fill in the variables." << endl;
+        cout << "Bank total: ";
+        cin >> total_bank;
         cout << "Bank account interest rate (%): ";
         cin >> bank_ir;
         cout << "Loaning interest rate (%): ";
@@ -106,6 +77,7 @@ int main()
         system("cls");
         if (selected == 3) {
             isRunning = false;
+            beginSave();
         }
         else if(selected == 1) {
             loginUser();
@@ -115,7 +87,14 @@ int main()
         }
         else if (selected == 4) {
             cleanUp(false);
+            numberOfUsers = 0;
             main();
+        }
+        else if (selected == 5) {
+            cleanUp(false);
+            SaveInfo();
+            SaveUsers(users);
+            LoadInfo();
         }
     } while (isRunning);
 
@@ -136,13 +115,15 @@ int showHomeCmds() {
         cout << "2. Create a user" << endl;
         cout << "3. Quit" << endl;
         cout << "4. Reset variables" << endl;
+        cout << "5. Save & Clean" << endl;
 
         cin >> selected;
 
         if (selected == 1 ||
             selected == 2 ||
             selected == 3 ||
-            selected == 4) {
+            selected == 4 ||
+            selected == 5) {
             isValid = true;
         }
         else {
@@ -157,7 +138,9 @@ int createAccount() {
     system("cls");
     showBankInfo();
     Types::User user;
+    user.exists = true;
     user.balance = 5000;
+    total_bank -= 5000;
     user.id = numberOfUsers + 1;
     numberOfUsers += 1;
     cout << "Your user ID is " << user.id << endl;
@@ -183,6 +166,12 @@ int loginUser() {
     int id = 0;
     cout << "Enter your ID: ";
     cin >> id;
+    if (users[id].exists == false) {
+        system("cls");
+        showBankInfo();
+        cout << "This user does not exist." << endl;
+        return 0;
+    }
     user = users[id];
     cout << "Enter your pin: ";
     int pin = 0;
@@ -203,12 +192,12 @@ int loginUser() {
             isLoggedIn = false;
         }
         else if (selected == 4) {
-            user.id = -1;
+            user.exists = false;
             users[id] = user;
             isLoggedIn = false;
         }
         else if (selected == 2) {
-
+            manageUserTransfer(user);
         }
         else if (selected == 1) {
             system("cls");
@@ -219,6 +208,90 @@ int loginUser() {
             manageUserLoan(user);
         }
     } while (isLoggedIn);
+
+    return 0;
+}
+
+int manageUserTransfer(Types::User user) {
+    system("cls");
+    showUserInfo(user);
+    bool active = true;
+    do {
+        cout << "1. Transfer In" << endl;
+        cout << "2. Transfer Out" << endl;
+        cout << "3. Quit" << endl;
+        int selected;
+        cin >> selected;
+        if (selected == 3) {
+            active = false;
+            system("cls");
+            showUserInfo(user);
+        }
+        else if (selected == 2) {
+            system("cls");
+            showUserInfo(user);
+            cout << "How much would you like to withdraw? (Max: " << user.balance << "): ";
+            int amount;
+            cin >> amount;
+            if (amount <= user.balance) {
+                system("cls");
+                cout << "Enter your pin to withdraw " << amount << endl << "Pin: ";
+                int pin;
+                cin >> pin;
+                if (user.pin != pin) {
+                    system("cls");
+                    showUserInfo(user);
+                    cout << "Invalid pin.";
+                }
+                else {
+                    user.balance -= amount;
+                    total_bank -= amount;
+                    users[user.id] = user;
+                    SaveInfo();
+                    system("cls");
+                    showUserInfo(user);
+                    cout << "Successfully withdrew " << amount << endl;
+                }
+            }
+            else {
+                system("cls");
+                showUserInfo(user);
+                cout << "Invalid amount..." << endl;
+            }
+        }
+        else if (selected == 1) {
+            system("cls");
+            showUserInfo(user);
+            cout << "How much would you like to deposit? (Max: 100,000,000): ";
+            int amount;
+            cin >> amount;
+            if (amount <= 100000000) {
+                system("cls");
+                cout << "Enter your pin to deposit " << amount << endl << "Pin: ";
+                int pin;
+                cin >> pin;
+                if (user.pin != pin) {
+                    system("cls");
+                    showUserInfo(user);
+                    cout << "Invalid pin.";
+                }
+                else {
+                    user.balance += amount;
+                    total_bank += amount;
+                    users[user.id] = user;
+                    SaveInfo();
+                    system("cls");
+                    showUserInfo(user);
+                    cout << "Successfully deposited " << amount << endl;
+                }
+            }
+            else {
+                system("cls");
+                showUserInfo(user);
+                cout << "Invalid amount..." << endl;
+            }
+        }
+    } while (active);
 
     return 0;
 }
@@ -292,7 +365,8 @@ int newLoan(Types::User user) {
     user.balance -= dp;
     user.loan.active = true;
     user.loan.amount = amount;
-    user.loan.due = (amount - dp) + (amount / loan_ir);
+    //user.loan.due = (amount - dp) + (amount / loan_ir);
+    user.loan.due = calculateLoanDue(amount, loan_dp, loan_ir);
     int profit = user.loan.due - amount;
     user.loan.months = months;
     user.loan.paid = dp;
@@ -400,12 +474,12 @@ int beginSave() {
     SaveInfo();
     cout << "Sorting..." << endl;
 
-    Types::User* Users_Sorted = new Types::User[500];
-    for (size_t i = 0; i < 500; i++)
+    Types::User* Users_Sorted = new Types::User[users_capacity];
+    for (size_t i = 0; i < users_capacity; i++)
     {
         Users_Sorted[users[i].id] = users[i];
     }
-    for (size_t i = 0; i < 500; i++)
+    for (size_t i = 0; i < users_capacity; i++)
     {
         users[i] = Users_Sorted[i];
     }
@@ -426,6 +500,45 @@ int LoadInfo() {
     loan_dp = LoadLoanDP();
     bank_profit = LoadBankProfit();
     total_bank = LoadTotalBank();
+
+    system("cls");
+    cout << "Loading users..." << endl;
+    for (size_t i = 0; i < users_capacity; i++)
+    {
+        try {
+            users[i] = LoadUser(i);
+        }
+        catch (exception ex) {
+            //cout << "Failed to load user " << i << endl;
+        }
+    }
+    cout << "Loaded users!" << endl;
+    cout << "Sorting..." << endl;
+
+    Types::User* Users_Sorted = new Types::User[users_capacity];
+    for (size_t i = 0; i < users_capacity; i++)
+    {
+        Users_Sorted[users[i].id] = users[i];
+    }
+    for (size_t i = 0; i < users_capacity; i++)
+    {
+        users[i] = Users_Sorted[i];
+    }
+    delete[] Users_Sorted;
+    cout << "Sorted!" << endl;
+    cout << "Saving and reloading..." << endl;
+    SaveUsers(users);
+    cout << "Loading users..." << endl;
+    for (size_t i = 0; i < users_capacity; i++)
+    {
+        try {
+            users[i] = LoadUser(i);
+        }
+        catch (exception ex) {
+            //cout << "Failed to load user " << i << endl;
+        }
+    }
+    cout << "Loaded users!" << endl;
 
     return 0;
 }

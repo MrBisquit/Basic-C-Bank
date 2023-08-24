@@ -9,6 +9,7 @@
 using namespace std;
 
 int numberOfUsers_S = 0;
+const int users_capacity = 500;
 
 int bank_ir_S;
 int loan_ir_S;
@@ -55,7 +56,7 @@ int LoadAllInfo() {
 			}
 		}
 	}
-	else cout << "Unable to open file";
+	else cout << "Unable to open file" << endl;
 
 	return 0;
 }
@@ -90,16 +91,16 @@ void SaveUser(Types::User user) {
 
 		myfile.close();
 	}
-	else cout << "Unable to open file";
+	else cout << "Unable to open file" << endl;
 }
 
 void SaveUsers(Types::User users[]) {
 	// sizeof(users)
-	for (size_t i = 0; i < 500; i++)
+	for (size_t i = 0; i < users_capacity; i++)
 	{
-		//cout << "Saving " << users[i].id << endl;
+		cout << "Saving " << i << endl;
 		SaveUser(users[i]);
-		//cout << "Saved " << users[i].id << endl;
+		cout << "Saved " << i << endl;
 	}
 }
 
@@ -116,7 +117,7 @@ void SaveInfo() {
 		myfile << total_bank_S << endl;
 		myfile.close();
 	}
-	else cout << "Unable to open file";
+	else cout << "Unable to open file" << endl;
 }
 
 Types::User LoadUser(int id) {
@@ -172,7 +173,7 @@ Types::User LoadUser(int id) {
 			}
 		}
 	}
-	else cout << "Unable to open file";
+	else cout << "Unable to open file" << endl;
 	return user;
 }
 
